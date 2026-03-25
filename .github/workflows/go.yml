@@ -9,22 +9,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go: ["1.23"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
-        run: sudo apt install wv unrtf tidy
+        run: sudo apt install wv unrtf tidy poppler-utils
 
-      - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v2
+      - name: Set up Go
+        uses: actions/setup-go@v6
         with:
-          go-version: ${{ matrix.go }}
+          go-version-file: go.mod
 
-      - name: Build ${{ matrix.go }}
+      - name: Build
         run: go build -v ./...
 
-      - name: Test ${{ matrix.go }}
+      - name: Test
         run: go test -v -race ./...
