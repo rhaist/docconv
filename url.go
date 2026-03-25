@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/advancedlogic/GoOse"
+	"github.com/advancedlogic/GoOse/pkg/goose"
 )
 
 // ConvertURL fetches the HTML page at the URL given in the io.Reader.

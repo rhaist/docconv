@@ -64,9 +64,9 @@ func acceptedHTMLTag(tagName string) bool {
 // Also removes made up tags, e.g. <fb:like>
 // Can keep head elements or not. Typically not much in there.
 func cleanHTML(r io.Reader, all bool) string {
-	output := ""
+	var output strings.Builder
 	if !all {
-		output = "<html><head></head>"
+		output.WriteString("<html><head></head>")
 	}
 	mainSection := false
 	junkSection := false
@@ -76,7 +76,7 @@ func cleanHTML(r io.Reader, all bool) string {
 		// token type
 		tokenType := d.Next()
 		if tokenType == html.ErrorToken {
-			return output
+			return output.String()
 		}
 		token := d.Token()
 
@@ -90,17 +90,17 @@ func cleanHTML(r io.Reader, all bool) string {
 			}
 
 			if !junkSection && mainSection {
-				output += "<" + token.Data + ">"
+				output.WriteString("<" + token.Data + ">")
 			}
 
 		case html.TextToken: // text between start and end tag
 			if !junkSection && mainSection {
-				output += token.Data
+				output.WriteString(token.Data)
 			}
 
 		case html.EndTagToken: // </tag>
 			if !junkSection && mainSection {
-				output += "</" + token.Data + ">"
+				output.WriteString("</" + token.Data + ">")
 			}
 			if !acceptedHTMLTag(token.Data) {
 				junkSection = false
@@ -108,7 +108,7 @@ func cleanHTML(r io.Reader, all bool) string {
 
 		case html.SelfClosingTagToken: // <tag/>
 			if !junkSection && mainSection {
-				output += "<" + token.Data + " />" // TODO: Can probably keep attributes from the meta tags
+				output.WriteString("<" + token.Data + " />") // TODO: Can probably keep attributes from the meta tags
 			}
 		}
 	}
@@ -150,16 +150,17 @@ func HTMLReadability(r io.Reader) ([]byte, error) {
 
 	useClasses := strings.SplitN(HTMLReadabilityOptionsValues.ReadabilityUseClasses, ",", 10)
 
-	output := ""
+	var output strings.Builder
 	for _, paragraph := range paragraphSet {
 		for _, class := range useClasses {
 			if paragraph.CfClass == class {
-				output += paragraph.Text + "\n"
+				output.WriteString(paragraph.Text)
+				output.WriteByte('\n')
 			}
 		}
 	}
 
-	return []byte(output), nil
+	return []byte(output.String()), nil
 }
 
 // HTMLToText converts HTML to plain text.

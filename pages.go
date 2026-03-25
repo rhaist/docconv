@@ -44,23 +44,27 @@ func ConvertPages(r io.Reader) (string, map[string]string, error) {
 			}
 		}
 		if f.Name == "Index/Document.iwa" {
-			rc, _ := f.Open()
+			rc, err := f.Open()
+			if err != nil {
+				return "", nil, fmt.Errorf("error opening iwa archive: %v", err)
+			}
 			defer rc.Close()
 			bReader := bufio.NewReader(snappy.NewReader(io.MultiReader(strings.NewReader("\xff\x06\x00\x00sNaPpY"), rc)))
 
-			// Ignore error.
-			// NOTE: This error was unchecked. Need to revisit this to see if it
-			// should be acted on.
-			archiveLength, _ := binary.ReadVarint(bReader)
+			archiveLength, err := binary.ReadVarint(bReader)
+			if err != nil {
+				return "", nil, fmt.Errorf("error reading iwa archive length: %v", err)
+			}
 
-			// Ignore error.
-			// NOTE: This error was unchecked. Need to revisit this to see if it
-			// should be acted on.
-			archiveInfoData, _ := io.ReadAll(io.LimitReader(bReader, archiveLength))
+			archiveInfoData, err := io.ReadAll(io.LimitReader(bReader, archiveLength))
+			if err != nil {
+				return "", nil, fmt.Errorf("error reading iwa archive info: %v", err)
+			}
 
 			archiveInfo := &TSP.ArchiveInfo{}
-			err = proto.Unmarshal(archiveInfoData, archiveInfo)
-			fmt.Println("archiveInfo:", archiveInfo, err)
+			if err = proto.Unmarshal(archiveInfoData, archiveInfo); err != nil {
+				return "", nil, fmt.Errorf("error unmarshalling iwa archive info: %v", err)
+			}
 		}
 	}
 

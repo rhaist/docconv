@@ -235,16 +235,31 @@ func (w *Writer) Write(p []byte) (n int, errRet error) {
 			chunkType, chunkBody = chunkTypeUncompressedData, uncompressed
 		}
 
-		chunkLen := 4 + len(chunkBody)
-		w.buf[0] = chunkType
-		w.buf[1] = uint8(chunkLen >> 0)
-		w.buf[2] = uint8(chunkLen >> 8)
-		w.buf[3] = uint8(chunkLen >> 16)
-		w.buf[4] = uint8(checksum >> 0)
-		w.buf[5] = uint8(checksum >> 8)
-		w.buf[6] = uint8(checksum >> 16)
-		w.buf[7] = uint8(checksum >> 24)
-		if _, err = w.w.Write(w.buf[:]); err != nil {
+		// For compressed chunks the Reader does not expect a checksum prefix
+		// (it was removed to support the Apple .pages .iwa format). Keep
+		// checksum only for uncompressed chunks where the Reader still
+		// validates it.
+		var headerLen int
+		if chunkType == chunkTypeCompressedData {
+			chunkLen := len(chunkBody)
+			w.buf[0] = chunkType
+			w.buf[1] = uint8(chunkLen >> 0)
+			w.buf[2] = uint8(chunkLen >> 8)
+			w.buf[3] = uint8(chunkLen >> 16)
+			headerLen = chunkHeaderSize
+		} else {
+			chunkLen := checksumSize + len(chunkBody)
+			w.buf[0] = chunkType
+			w.buf[1] = uint8(chunkLen >> 0)
+			w.buf[2] = uint8(chunkLen >> 8)
+			w.buf[3] = uint8(chunkLen >> 16)
+			w.buf[4] = uint8(checksum >> 0)
+			w.buf[5] = uint8(checksum >> 8)
+			w.buf[6] = uint8(checksum >> 16)
+			w.buf[7] = uint8(checksum >> 24)
+			headerLen = chunkHeaderSize + checksumSize
+		}
+		if _, err = w.w.Write(w.buf[:headerLen]); err != nil {
 			w.err = err
 			return n, err
 		}

@@ -15,7 +15,13 @@ func Tidy(r io.Reader, xmlIn bool) ([]byte, error) {
 		return nil, err
 	}
 	defer os.Remove(f.Name())
-	io.Copy(f, r)
+	if _, err = io.Copy(f, r); err != nil {
+		f.Close()
+		return nil, err
+	}
+	if err = f.Close(); err != nil {
+		return nil, err
+	}
 
 	var output []byte
 	if xmlIn {

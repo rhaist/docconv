@@ -41,7 +41,7 @@ func ConvertDocx(r io.Reader) (string, map[string]string, error) {
 	} else {
 		b, err := io.ReadAll(io.LimitReader(r, maxBytes))
 		if err != nil {
-			return "", nil, nil
+			return "", nil, err
 		}
 		size = int64(len(b))
 		ra = bytes.NewReader(b)

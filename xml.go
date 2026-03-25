@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"strings"
 )
 
 // ConvertXML converts an XML file to text.
@@ -23,7 +24,7 @@ func ConvertXML(r io.Reader) (string, map[string]string, error) {
 
 // XMLToText converts XML to plain text given how to treat elements.
 func XMLToText(r io.Reader, breaks []string, skip []string, strict bool) (string, error) {
-	var result string
+	var result strings.Builder
 
 	dec := xml.NewDecoder(io.LimitReader(r, maxBytes))
 	dec.Strict = strict
@@ -38,11 +39,11 @@ func XMLToText(r io.Reader, breaks []string, skip []string, strict bool) (string
 
 		switch v := t.(type) {
 		case xml.CharData:
-			result += string(v)
+			result.Write(v)
 		case xml.StartElement:
 			for _, breakElement := range breaks {
 				if v.Name.Local == breakElement {
-					result += "\n"
+					result.WriteByte('\n')
 				}
 			}
 			for _, skipElement := range skip {
@@ -70,7 +71,7 @@ func XMLToText(r io.Reader, breaks []string, skip []string, strict bool) (string
 			}
 		}
 	}
-	return result, nil
+	return result.String(), nil
 }
 
 // XMLToMap converts XML to a nested string map.
@@ -78,6 +79,7 @@ func XMLToMap(r io.Reader) (map[string]string, error) {
 	m := make(map[string]string)
 	dec := xml.NewDecoder(io.LimitReader(r, maxBytes))
 	var tagName string
+	inElement := false
 	for {
 		t, err := dec.Token()
 		if err != nil {
@@ -89,9 +91,14 @@ func XMLToMap(r io.Reader) (map[string]string, error) {
 
 		switch v := t.(type) {
 		case xml.StartElement:
-			tagName = string(v.Name.Local)
+			tagName = v.Name.Local
+			inElement = true
+		case xml.EndElement:
+			inElement = false
 		case xml.CharData:
-			m[tagName] = string(v)
+			if inElement {
+				m[tagName] = string(v)
+			}
 		}
 	}
 	return m, nil

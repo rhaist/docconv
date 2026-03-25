@@ -27,9 +27,9 @@ func ConvertPptx(r io.Reader) (string, map[string]string, error) {
 		size = si.Size()
 		ra = f
 	} else {
-		b, err := io.ReadAll(r)
+		b, err := io.ReadAll(io.LimitReader(r, maxBytes))
 		if err != nil {
-			return "", nil, nil
+			return "", nil, err
 		}
 		size = int64(len(b))
 		ra = bytes.NewReader(b)
