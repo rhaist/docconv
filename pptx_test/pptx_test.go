@@ -16,19 +16,14 @@ func TestConvertPptx(t *testing.T) {
 	}
 	defer f.Close()
 
-	if err != nil {
-		t.Fatalf("got error = %v, want nil", err)
-	}
-
 	resp, _, err := docconv.ConvertPptx(f)
 	if err != nil {
 		t.Fatalf("got error = %v, want nil", err)
 	}
-	if want := "Get text from pptx"; !strings.Contains(resp, want) {
-		t.Errorf("expected %v to contain %v", resp, want)
-	}
-	if want := "First"; !strings.Contains(resp, want) {
-		t.Errorf("expected %v to contain %v", resp, want)
+	for _, want := range []string{"Get text from pptx", "First"} {
+		if !strings.Contains(resp, want) {
+			t.Errorf("output missing %q\ngot: %s", want, resp)
+		}
 	}
 }
 
