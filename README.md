@@ -31,24 +31,22 @@ See `go help install` for details on the installation location of the installed 
 
 ```console
 $ sudo apt-get install poppler-utils wv unrtf tidy
-$ go get github.com/JalfResi/justext
 ```
 
 ### macOS
 
 ```console
-$ brew install poppler-qt5 wv unrtf tidy-html5
-$ go get github.com/JalfResi/justext
+$ brew install poppler wv unrtf tidy-html5
 ```
 
 ### Optional dependencies
 
-To add image support to the `docconv` library you first need to [install and build gosseract](https://github.com/otiai10/gosseract/tree/v2.2.4).
+To add image support to the `docconv` library you first need to [install and build gosseract](https://github.com/otiai10/gosseract).
 
 Now you can add `-tags ocr` to any `go` command when building/fetching/testing `docconv` to include support for processing images:
 
 ```console
-$ go get -tags ocr code.sajari.com/docconv/v2/...
+$ go build -tags ocr code.sajari.com/docconv/v2/...
 ```
 
 This may complain on macOS, which you can fix by installing [tesseract](https://tesseract-ocr.github.io) via brew:

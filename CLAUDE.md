@@ -51,7 +51,7 @@ go build -v ./docd
 - `limit.go` — wraps readers with 20MB cap
 - `tidy.go` — wraps the `tidy` CLI for HTML/XML sanitization
 
-**iWork/Pages format:** Uses a custom snappy decompressor (`snappy/`) and protobuf definitions (`iWork/`) to parse Apple's binary format.
+**iWork/Pages format:** Uses a custom snappy decompressor (`snappy/`) and protobuf definitions (`iWork/`) to parse Apple's binary format. The `snappy/` package is a fork of snappy-go modified for the `.pages` `.iwa` format: compressed chunks do **not** include the 4-byte checksum prefix that standard framing includes (the checksum is only present on uncompressed chunks). `NewWriter` and `NewReader` are kept consistent with this invariant.
 
 **`docd` service:** HTTP handlers in `docd/convert.go` accept multipart form, path, or streaming input and return JSON. Routing via `gorilla/mux`.
 
